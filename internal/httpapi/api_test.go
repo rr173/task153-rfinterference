@@ -29,3 +29,17 @@ func TestStationEndpoint(t *testing.T) {
 		t.Fatal(w.Code)
 	}
 }
+
+func TestOperatorPage(t *testing.T) {
+	db, err := store.Open(filepath.Join(t.TempDir(), "page.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	h := New(service.New(db)).Handler()
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+	if w.Code != http.StatusOK || w.Header().Get("Content-Type") != "text/html; charset=utf-8" || !bytes.Contains(w.Body.Bytes(), []byte("无线干扰事件归因")) {
+		t.Fatalf("unexpected operator page: %d %s %s", w.Code, w.Header().Get("Content-Type"), w.Body.String())
+	}
+}

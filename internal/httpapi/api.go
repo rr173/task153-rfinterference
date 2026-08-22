@@ -15,6 +15,7 @@ type API struct{ service *service.Service }
 func New(s *service.Service) *API { return &API{service: s} }
 func (a *API) Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", a.page)
 	mux.HandleFunc("GET /healthz", a.health)
 	mux.HandleFunc("GET /metrics", a.metric)
 	mux.HandleFunc("POST /v1/stations", a.registerStation)

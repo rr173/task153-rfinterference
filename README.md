@@ -10,3 +10,4 @@ curl http://localhost:8080/v1/events
 ```
 
 SQLite 数据库默认保存在 `rfinterference.db`，可用 `--db` 修改。`--smoke-test` 会使用临时数据库运行自检后退出。
+启动服务后访问 `http://localhost:8080/` 可打开最小操作页，触发示例导入和自检。
