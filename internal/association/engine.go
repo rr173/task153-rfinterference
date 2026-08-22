@@ -52,6 +52,19 @@ func (e *Engine) Associate(ctx context.Context, f model.Fragment) (Decision, err
 	event := model.Event{ID: uuid.NewString(), Status: model.EventObserving, StartAt: f.CorrectedAt, EndAt: f.CorrectedAt, MinHz: min, MaxHz: max, Revision: 1, CreatedAt: now, UpdatedAt: now}
 	return Decision{Event: event, Accepted: true, Created: true}, nil
 }
+
+func (e *Engine) ArchivedMatch(ctx context.Context, f model.Fragment) (model.Event, bool, error) {
+	events, err := e.store.ArchivedEvents(ctx)
+	if err != nil {
+		return model.Event{}, false, err
+	}
+	for _, event := range events {
+		if FrequencyCompatible(event, f) && TimeCompatible(event, f) {
+			return event, true, nil
+		}
+	}
+	return model.Event{}, false, nil
+}
 func (e *Engine) ApplyLifecycle(event *model.Event, fragments []model.Fragment, now time.Time) {
 	stations := map[string]struct{}{}
 	for _, f := range fragments {

@@ -31,7 +31,7 @@ func (s *Store) UpdateFragmentAssociation(ctx context.Context, fragmentID, event
 }
 
 func (s *Store) FragmentsForEvent(ctx context.Context, eventID string) ([]model.Fragment, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id,station_id,sequence,observed_at,corrected_at,center_hz,bandwidth_hz,strength_dbm,direction_deg,status,COALESCE(event_id,''),exclusion_reason,created_at FROM fragments WHERE event_id=? ORDER BY corrected_at,id`, eventID)
+	rows, err := s.db.QueryContext(ctx, `SELECT id,station_id,sequence,observed_at,corrected_at,center_hz,bandwidth_hz,strength_dbm,direction_deg,status,COALESCE(event_id,''),exclusion_reason,created_at FROM fragments WHERE event_id=? AND status=? ORDER BY corrected_at,id`, eventID, model.FragmentAccepted)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/rr173/task153-rfinterference/internal/fragment"
 	"github.com/rr173/task153-rfinterference/internal/model"
 )
 
@@ -25,6 +26,20 @@ func (s *Service) ingestOne(ctx context.Context, in model.FragmentInput) model.I
 	}
 	if err := s.fragments.Persist(ctx, f); err != nil {
 		return model.IngestResult{Sequence: in.Sequence, Status: model.FragmentInvalid, Code: model.CodeInternal, Reason: err.Error()}
+	}
+	if fragment.IsLate(s.now(), f) {
+		if archived, found, err := s.association.ArchivedMatch(ctx, f); err != nil {
+			return model.IngestResult{Sequence: in.Sequence, Status: model.FragmentInvalid, FragmentID: f.ID, Code: model.CodeInternal, Reason: err.Error()}
+		} else if found {
+			reason := "historical evidence retained as supplementary evidence for archived event"
+			if err := s.store.UpdateFragmentAssociation(ctx, f.ID, archived.ID, model.FragmentExcluded, reason); err != nil {
+				return model.IngestResult{Sequence: in.Sequence, Status: model.FragmentInvalid, FragmentID: f.ID, Code: model.CodeInternal, Reason: err.Error()}
+			}
+			if err := s.store.SaveExclusion(ctx, model.Exclusion{ID: uuid.NewString(), EventID: archived.ID, FragmentID: f.ID, Reason: reason, CreatedAt: s.now().UTC()}); err != nil {
+				return model.IngestResult{Sequence: in.Sequence, Status: model.FragmentInvalid, FragmentID: f.ID, EventID: archived.ID, Code: model.CodeInternal, Reason: err.Error()}
+			}
+			return model.IngestResult{Sequence: in.Sequence, Status: model.FragmentExcluded, FragmentID: f.ID, EventID: archived.ID, Reason: reason}
+		}
 	}
 	decision, err := s.association.Associate(ctx, f)
 	if err != nil {

@@ -51,6 +51,23 @@ func (s *Store) ActiveEvents(ctx context.Context) ([]model.Event, error) {
 	}
 	return out, rows.Err()
 }
+
+func (s *Store) ArchivedEvents(ctx context.Context) ([]model.Event, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id,status,start_at,end_at,min_hz,max_hz,frozen,revision,created_at,updated_at FROM events WHERE frozen=1 ORDER BY updated_at DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []model.Event{}
+	for rows.Next() {
+		v, err := scanEvent(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, v)
+	}
+	return out, rows.Err()
+}
 func (s *Store) CountEvents(ctx context.Context) (int, error) {
 	var n int
 	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM events`).Scan(&n)
