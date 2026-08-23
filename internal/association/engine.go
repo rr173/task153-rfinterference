@@ -59,7 +59,7 @@ func (e *Engine) ArchivedMatch(ctx context.Context, f model.Fragment) (model.Eve
 		return model.Event{}, false, err
 	}
 	for _, event := range events {
-		if FrequencyCompatible(event, f) && !TimeCompatible(event, f) {
+		if FrequencyCompatible(event, f) && TimeCompatible(event, f) {
 			return event, true, nil
 		}
 	}
