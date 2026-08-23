@@ -62,7 +62,7 @@ func (a *API) calibration(w http.ResponseWriter, r *http.Request) {
 	if !decode(w, r, &req) {
 		return
 	}
-	c, err := a.service.CreateCalibration(r.Context(), r.PathValue("id"), req)
+	c, err := a.service.CreateCalibration(r.Context(), model.CanonicalIdentifier(r.PathValue("id")), req)
 	if err != nil {
 		writeError(w, err)
 		return

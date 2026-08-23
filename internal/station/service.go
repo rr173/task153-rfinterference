@@ -2,6 +2,7 @@ package station
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,7 +22,7 @@ func (s *Service) Register(ctx context.Context, req model.RegisterStationRequest
 	if err := model.ValidateStation(req); err != nil {
 		return model.Station{}, err
 	}
-	station := model.Station{ID: req.ID, Name: req.Name, Latitude: req.Latitude, Longitude: req.Longitude, Status: model.StationCalibrating, CreatedAt: s.now().UTC()}
+	station := model.Station{ID: model.CanonicalIdentifier(req.ID), Name: strings.TrimSpace(req.Name), Latitude: req.Latitude, Longitude: req.Longitude, Status: model.StationCalibrating, CreatedAt: s.now().UTC()}
 	if err := s.store.SaveStation(ctx, station); err != nil {
 		return model.Station{}, err
 	}
@@ -31,6 +32,7 @@ func (s *Service) CreateCalibration(ctx context.Context, stationID string, req m
 	if err := model.ValidateCalibration(req); err != nil {
 		return model.Calibration{}, err
 	}
+	stationID = model.CanonicalIdentifier(stationID)
 	station, err := s.store.GetStation(ctx, stationID)
 	if err != nil {
 		return model.Calibration{}, err
@@ -53,7 +55,7 @@ func (s *Service) CreateCalibration(ctx context.Context, stationID string, req m
 	return c, nil
 }
 func (s *Service) CorrectTime(ctx context.Context, stationID string, observed time.Time) (time.Time, model.Calibration, error) {
-	c, err := s.store.ActiveCalibration(ctx, stationID)
+	c, err := s.store.ActiveCalibration(ctx, model.CanonicalIdentifier(stationID))
 	if err != nil {
 		return time.Time{}, model.Calibration{}, err
 	}

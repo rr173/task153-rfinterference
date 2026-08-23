@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"task153-rfinterference/internal/model"
 	"task153-rfinterference/internal/store"
-	"strings"
 	"time"
 )
 
@@ -26,7 +25,7 @@ func New(s *store.Store, c ClockCorrector) *Service {
 func (s *Service) SetClock(clock func() time.Time) { s.now = clock }
 func (s *Service) Prepare(ctx context.Context, in model.FragmentInput) (model.Fragment, bool, error) {
 	in.StationID = model.CanonicalIdentifier(in.StationID)
-	in.Sequence = strings.TrimSpace(in.Sequence)
+	in.Sequence = model.CanonicalIdentifier(in.Sequence)
 	if err := model.ValidateFragment(in, s.now()); err != nil {
 		return model.Fragment{}, false, err
 	}
