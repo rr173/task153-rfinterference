@@ -12,8 +12,15 @@ const DirectionToleranceDeg = 45.0
 func DirectionDistance(a, b float64) float64 {
 	return model.DirectionDeviation(a, b)
 }
+// FrequencyCompatible reports whether a scan's band is close enough to an
+// event's accumulated band to be part of the same interference event. It shares
+// the half-bandwidth edges from model.FrequencyRange and the single overlap
+// primitive with fragment.OverlapsFrequency and the ranking score, so the
+// frequency window stays consistent across the whole association pipeline.
 func FrequencyCompatible(event model.Event, f model.Fragment) bool {
-	return !(model.FrequencySpan{MinHz: event.MinHz, MaxHz: event.MaxHz}).Overlaps(model.NewFrequencySpan(f.CenterHz, f.BandwidthHz), FrequencyToleranceHz)
+	span := model.FrequencySpan{MinHz: event.MinHz, MaxHz: event.MaxHz}
+	candidate := model.NewFrequencySpan(f.CenterHz, f.BandwidthHz)
+	return span.Overlaps(candidate, FrequencyToleranceHz)
 }
 func TimeCompatible(event model.Event, f model.Fragment) bool {
 	return !f.CorrectedAt.Before(event.StartAt.Add(-EventGap)) && !f.CorrectedAt.After(event.EndAt.Add(EventGap))

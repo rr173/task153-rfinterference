@@ -57,8 +57,13 @@ func ValidateFragment(in FragmentInput, now time.Time) error {
 	return nil
 }
 
+// FrequencyRange derives the occupied band edges from a scan's center frequency
+// and full bandwidth using the half-bandwidth on each side. This keeps the lower
+// edge non-negative up to the ValidateFragment bound (BandwidthHz <= 2*CenterHz)
+// and is the single half-bandwidth rule shared by every association path.
 func FrequencyRange(center, bandwidth int64) (int64, int64) {
-	return center - bandwidth, center + bandwidth
+	half := bandwidth / 2
+	return center - half, center + half
 }
 
 func NormalizeDirection(direction float64) float64 {

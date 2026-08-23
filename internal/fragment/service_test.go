@@ -10,6 +10,18 @@ import (
 	"time"
 )
 
+func TestOverlapsFrequencySharesWindowRule(t *testing.T) {
+	narrow := model.Fragment{CenterHz: 1_000_000, BandwidthHz: 2_000}
+	wide := model.Fragment{CenterHz: 1_000_000, BandwidthHz: 6_000}
+	if !OverlapsFrequency(narrow, wide, 0) {
+		t.Fatal("edge-overlapping scans of different bandwidth were split")
+	}
+	disjoint := model.Fragment{CenterHz: 2_000_000, BandwidthHz: 4_000}
+	if OverlapsFrequency(narrow, disjoint, FrequencyTolerance(narrow, disjoint)) {
+		t.Fatal("disjoint band was merged")
+	}
+}
+
 func TestPrepareDetectsDuplicate(t *testing.T) {
 	db, _ := store.Open(filepath.Join(t.TempDir(), "x.db"))
 	defer db.Close()
