@@ -21,7 +21,7 @@ func (c *Computer) Compute(event model.Event, fragments []model.Fragment, calibr
 		stations[f.StationID] = struct{}{}
 		directions = append(directions, f.DirectionDeg)
 		cal, ok := calibrations[f.StationID]
-		assessment := station.AssessTrust(cal, f.ObservedAt, c.now())
+		assessment := station.AssessTrust(cal, f.CorrectedAt, c.now())
 		if !ok || !assessment.Trusted {
 			untrusted++
 		}

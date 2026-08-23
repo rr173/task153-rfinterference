@@ -57,7 +57,9 @@ func (s *Service) CorrectTime(ctx context.Context, stationID string, observed ti
 	if err != nil {
 		return time.Time{}, model.Calibration{}, err
 	}
-	return observed.Add(time.Duration(c.ClockOffsetMillis) * time.Millisecond).UTC(), c, nil
+	// ClockOffsetMillis is how far the station clock runs ahead of true time, so
+	// correcting an observation means subtracting the offset rather than adding it.
+	return observed.Add(-time.Duration(c.ClockOffsetMillis) * time.Millisecond).UTC(), c, nil
 }
 func (s *Service) IsTrusted(c model.Calibration, observed time.Time) bool {
 	return !observed.After(c.TrustedUntil)

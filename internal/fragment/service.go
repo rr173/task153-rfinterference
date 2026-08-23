@@ -44,12 +44,12 @@ func (s *Service) Prepare(ctx context.Context, in model.FragmentInput) (model.Fr
 	if !errors.Is(err, sql.ErrNoRows) {
 		return model.Fragment{}, false, err
 	}
-	_, cal, err := s.clock.CorrectTime(ctx, in.StationID, in.ObservedAt)
+	corrected, cal, err := s.clock.CorrectTime(ctx, in.StationID, in.ObservedAt)
 	if err != nil {
 		return model.Fragment{}, false, err
 	}
-	f := model.Fragment{ID: uuid.NewString(), StationID: in.StationID, Sequence: in.Sequence, ObservedAt: in.ObservedAt.UTC(), CorrectedAt: in.ObservedAt.UTC(), CenterHz: in.CenterHz, BandwidthHz: in.BandwidthHz, StrengthDBm: in.StrengthDBm, DirectionDeg: model.NormalizeDirection(in.DirectionDeg), Status: model.FragmentNew, CreatedAt: s.now().UTC()}
-	if !cal.TrustedUntil.IsZero() && in.ObservedAt.After(cal.TrustedUntil) {
+	f := model.Fragment{ID: uuid.NewString(), StationID: in.StationID, Sequence: in.Sequence, ObservedAt: in.ObservedAt.UTC(), CorrectedAt: corrected, CenterHz: in.CenterHz, BandwidthHz: in.BandwidthHz, StrengthDBm: in.StrengthDBm, DirectionDeg: model.NormalizeDirection(in.DirectionDeg), Status: model.FragmentNew, CreatedAt: s.now().UTC()}
+	if !cal.TrustedUntil.IsZero() && corrected.After(cal.TrustedUntil) {
 		f.ExclusionReason = "calibration trust window elapsed"
 	}
 	return f, false, nil

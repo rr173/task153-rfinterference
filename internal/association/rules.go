@@ -16,7 +16,7 @@ func FrequencyCompatible(event model.Event, f model.Fragment) bool {
 	return model.FrequencySpan{MinHz: event.MinHz, MaxHz: event.MaxHz}.Overlaps(model.NewFrequencySpan(f.CenterHz, f.BandwidthHz), FrequencyToleranceHz)
 }
 func TimeCompatible(event model.Event, f model.Fragment) bool {
-	return !f.ObservedAt.Before(event.StartAt.Add(-EventGap)) && !f.ObservedAt.After(event.EndAt.Add(EventGap))
+	return !f.CorrectedAt.Before(event.StartAt.Add(-EventGap)) && !f.CorrectedAt.After(event.EndAt.Add(EventGap))
 }
 func DirectionCompatible(existing []model.Fragment, f model.Fragment) bool {
 	if len(existing) == 0 {
