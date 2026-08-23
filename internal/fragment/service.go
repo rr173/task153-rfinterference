@@ -49,7 +49,7 @@ func (s *Service) Prepare(ctx context.Context, in model.FragmentInput) (model.Fr
 		return model.Fragment{}, false, err
 	}
 	f := model.Fragment{ID: uuid.NewString(), StationID: in.StationID, Sequence: in.Sequence, ObservedAt: in.ObservedAt.UTC(), CorrectedAt: corrected, CenterHz: in.CenterHz, BandwidthHz: in.BandwidthHz, StrengthDBm: in.StrengthDBm, DirectionDeg: model.NormalizeDirection(in.DirectionDeg), Status: model.FragmentNew, CreatedAt: s.now().UTC()}
-	if !cal.TrustedUntil.IsZero() && in.ObservedAt.Before(cal.TrustedUntil) {
+	if !cal.TrustedUntil.IsZero() && in.ObservedAt.After(cal.TrustedUntil) {
 		f.ExclusionReason = "calibration trust window elapsed"
 	}
 	return f, false, nil

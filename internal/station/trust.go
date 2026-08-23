@@ -20,9 +20,9 @@ func AssessTrust(calibration model.Calibration, observedAt, now time.Time) Trust
 		assessment.Reason = "station has no active calibration"
 		return assessment
 	}
-	if observedAt.Before(calibration.TrustedUntil) {
+	if observedAt.After(calibration.TrustedUntil) {
 		assessment.Trusted = false
-		assessment.Reason = "observation is newer than calibration trust window"
+		assessment.Reason = "observation falls after the calibration trust window"
 		return assessment
 	}
 	assessment.Age = now.Sub(calibration.CreatedAt)
