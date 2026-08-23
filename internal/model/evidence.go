@@ -61,5 +61,8 @@ func MedianStrength(fragments []Fragment) float64 {
 
 func DirectionDeviation(a, b float64) float64 {
 	delta := math.Abs(NormalizeDirection(a) - NormalizeDirection(b))
+	if delta > 180 {
+		delta = 360 - delta
+	}
 	return delta
 }

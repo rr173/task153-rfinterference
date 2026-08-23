@@ -16,4 +16,11 @@ func TestCompatibilityRules(t *testing.T) {
 	if DirectionCompatible([]model.Fragment{{DirectionDeg: 200}}, f) {
 		t.Fatal("unexpected direction compatibility")
 	}
+	// Closely agreeing directions must associate even when they straddle north.
+	if !DirectionCompatible([]model.Fragment{{DirectionDeg: 359}}, model.Fragment{DirectionDeg: 1}) {
+		t.Fatal("north-straddling directions should remain compatible")
+	}
+	if !DirectionCompatible([]model.Fragment{{DirectionDeg: 20}}, model.Fragment{DirectionDeg: 27}) {
+		t.Fatal("nearby directions should remain compatible")
+	}
 }

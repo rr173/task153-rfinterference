@@ -57,9 +57,36 @@ func (c *Computer) Compute(event model.Event, fragments []model.Fragment, calibr
 	return a
 }
 func directionRange(values []float64) (float64, float64, float64) {
-	sort.Float64s(values)
-	if len(values) == 1 {
-		return values[0], values[0], 0
+	if len(values) == 0 {
+		return 0, 0, 0
 	}
-	return values[0], values[len(values)-1], values[len(values)-1] - values[0]
+	norm := make([]float64, len(values))
+	for i, v := range values {
+		norm[i] = model.NormalizeDirection(v)
+	}
+	sort.Float64s(norm)
+	if len(norm) == 1 {
+		return norm[0], norm[0], 0
+	}
+	// Find the largest gap between consecutive directions (including the
+	// wrap-around across north). The covered arc is the complement of that
+	// gap, and its endpoints sit on either side of the largest gap so the
+	// reported min/max stay continuous when evidence straddles north.
+	maxGap := 0.0
+	maxIdx := 0
+	for i := 0; i < len(norm); i++ {
+		next := norm[(i+1)%len(norm)]
+		gap := next - norm[i]
+		if gap < 0 {
+			gap += 360
+		}
+		if gap > maxGap {
+			maxGap = gap
+			maxIdx = i
+		}
+	}
+	span := 360 - maxGap
+	min := norm[(maxIdx+1)%len(norm)]
+	max := norm[maxIdx]
+	return min, max, span
 }
