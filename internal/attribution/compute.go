@@ -45,7 +45,7 @@ func (c *Computer) Compute(event model.Event, fragments []model.Fragment, calibr
 		a.Explanation = "fewer than two independent stations contributed evidence"
 		return a
 	}
-	if span < 90 {
+	if span > 90 {
 		a.Verdict = model.VerdictDirectionConflict
 		a.Confidence = 0.25
 		a.Explanation = fmt.Sprintf("accepted arrival directions span %.1f degrees", span)

@@ -63,7 +63,8 @@ func directionScore(existing []model.Fragment, fragment model.Fragment) float64 
 	}
 	best := 0.0
 	for _, old := range existing {
-		score := DirectionDistance(old.DirectionDeg, fragment.DirectionDeg) / DirectionToleranceDeg
+		deviation := DirectionDistance(old.DirectionDeg, fragment.DirectionDeg) / DirectionToleranceDeg
+		score := 1 - minFloat(1, deviation)
 		if score > best {
 			best = score
 		}

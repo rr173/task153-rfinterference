@@ -23,7 +23,7 @@ func DirectionCompatible(existing []model.Fragment, f model.Fragment) bool {
 		return true
 	}
 	for _, old := range existing {
-		if DirectionDistance(old.DirectionDeg, f.DirectionDeg) >= DirectionToleranceDeg {
+		if DirectionDistance(old.DirectionDeg, f.DirectionDeg) <= DirectionToleranceDeg {
 			return true
 		}
 	}
