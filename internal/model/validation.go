@@ -32,6 +32,11 @@ func ValidateCalibration(req CreateCalibrationRequest) error {
 	return nil
 }
 
+// FutureObservationWindow is how far an observation may lie ahead of now before
+// it is rejected as implausibly future-dated (e.g. a receiver clock that has
+// drifted ahead of the server).
+const FutureObservationWindow = 5 * time.Minute
+
 func ValidateFragment(in FragmentInput, now time.Time) error {
 	if strings.TrimSpace(in.StationID) == "" || strings.TrimSpace(in.Sequence) == "" {
 		return NewError(CodeValidation, "station_id and sequence are required")
@@ -51,7 +56,7 @@ func ValidateFragment(in FragmentInput, now time.Time) error {
 	if in.ObservedAt.IsZero() {
 		return NewError(CodeValidation, "observed_at is required")
 	}
-	if in.ObservedAt.Before(now.Add(5 * time.Minute)) {
+	if in.ObservedAt.After(now.Add(FutureObservationWindow)) {
 		return NewError(CodeFutureObservation, "observation is too far in the future")
 	}
 	return nil

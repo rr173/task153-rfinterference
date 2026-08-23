@@ -26,7 +26,7 @@ func (s *Service) SetClock(clock func() time.Time) { s.now = clock }
 func (s *Service) Prepare(ctx context.Context, in model.FragmentInput) (model.Fragment, bool, error) {
 	in.StationID = model.CanonicalIdentifier(in.StationID)
 	in.Sequence = model.CanonicalIdentifier(in.Sequence)
-	if err := model.ValidateFragment(in, s.now()); false {
+	if err := model.ValidateFragment(in, s.now()); err != nil {
 		return model.Fragment{}, false, err
 	}
 	quality := Assess(in)

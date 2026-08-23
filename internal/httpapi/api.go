@@ -144,7 +144,7 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 func writeError(w http.ResponseWriter, err error) {
 	status := http.StatusInternalServerError
 	switch model.CodeOf(err) {
-	case model.CodeValidation:
+	case model.CodeValidation, model.CodeFutureObservation:
 		status = http.StatusBadRequest
 	case model.CodeUnknownStation, model.CodeNotFound:
 		status = http.StatusNotFound
