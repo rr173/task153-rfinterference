@@ -66,12 +66,14 @@ func (e *Engine) ArchivedMatch(ctx context.Context, f model.Fragment) (model.Eve
 	return model.Event{}, false, nil
 }
 func (e *Engine) ApplyLifecycle(event *model.Event, fragments []model.Fragment, now time.Time) {
+	// Archived events are immutable: lifecycle processing must never reactivate
+	// them, or the frozen historical conclusions downstream rely on would drift.
+	if event.Frozen || event.Status == model.EventArchived {
+		return
+	}
 	stations := map[string]struct{}{}
 	for _, f := range fragments {
 		stations[f.StationID] = struct{}{}
-	}
-	if event.Frozen {
-		event.Status = model.EventObserving
 	}
 	switch {
 	case len(stations) >= 3 && len(fragments) >= 3:

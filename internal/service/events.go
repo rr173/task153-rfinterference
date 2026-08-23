@@ -11,6 +11,11 @@ func (s *Service) refresh(ctx context.Context, eventID string) error {
 	if err != nil {
 		return err
 	}
+	// Archived events are immutable: never recompute lifecycle state or write a
+	// new attribution snapshot for them. Their existing conclusions stay frozen.
+	if event.Frozen || event.Status == model.EventArchived {
+		return nil
+	}
 	fs, err := s.store.FragmentsForEvent(ctx, eventID)
 	if err != nil {
 		return err
@@ -62,14 +67,22 @@ func (s *Service) Archive(ctx context.Context, id string) (model.Event, error) {
 	if err != nil {
 		return model.Event{}, err
 	}
-	event.Frozen = false
+	if event.Frozen || event.Status == model.EventArchived {
+		// Already archived: an archived event is immutable, so re-archiving
+		// (which would bump the revision and thaw the report) is rejected.
+		return model.Event{}, model.NewError(model.CodeArchived, "event %s is already archived", id)
+	}
+	if err := model.ValidateEventTransition(event.Status, model.EventArchived); err != nil {
+		return model.Event{}, err
+	}
+	// Freezing the report makes the archived event immutable: its revision,
+	// attribution, and historical conclusions are frozen, so later evidence is
+	// retained as supplementary exclusions instead of recomputing them.
+	event.Frozen = true
 	event.Status = model.EventArchived
 	event.Revision++
 	event.UpdatedAt = s.now().UTC()
 	if err := s.store.UpdateEvent(ctx, event); err != nil {
-		return model.Event{}, err
-	}
-	if err := s.refresh(ctx, id); err != nil {
 		return model.Event{}, err
 	}
 	return event, nil

@@ -3,7 +3,9 @@ package model
 import "fmt"
 
 // EventTransitionAllowed protects the immutable archive boundary while keeping
-// the transitions explicit for the service layer and API consumers.
+// the transitions explicit for the service layer and API consumers. An archived
+// event is terminal: it can never transition back to an active state, so its
+// frozen historical conclusions stay reliable.
 func EventTransitionAllowed(from, to EventStatus) bool {
 	if from == to {
 		return true
@@ -16,7 +18,8 @@ func EventTransitionAllowed(from, to EventStatus) bool {
 	case EventInsufficientEvidence:
 		return to == EventObserving || to == EventConfirmed || to == EventArchived
 	case EventArchived:
-		return to == EventObserving
+		// Archived events are immutable; no transition away is permitted.
+		return false
 	default:
 		return false
 	}
